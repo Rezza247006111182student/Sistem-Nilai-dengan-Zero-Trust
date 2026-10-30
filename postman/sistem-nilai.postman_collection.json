@@ -1,0 +1,311 @@
+{
+  "info": {
+    "name": "Sistem Nilai Zero Trust",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Koleksi Postman untuk menguji Sistem Nilai Zero Trust — Praktikum Keamanan Informasi"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:3000" },
+    { "key": "nilai_direct", "value": "http://127.0.0.1:3001" },
+    { "key": "transkrip_direct", "value": "http://127.0.0.1:3002" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "device_id", "value": "DEV-MHS-01" },
+    { "key": "admin_token", "value": "" },
+    { "key": "dosen1_token", "value": "" },
+    { "key": "dosen2_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login mhs1 (sukses)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Device-ID", "value": "DEV-MHS-01" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\"username\": \"mhs1\", \"password\": \"Password123!\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var data = pm.response.json();",
+                  "pm.collectionVariables.set('access_token', data.access_token);",
+                  "pm.collectionVariables.set('refresh_token', data.refresh_token);",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has tokens', () => { pm.expect(data.access_token).to.exist; pm.expect(data.refresh_token).to.exist; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login mhs1 (device salah)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Device-ID", "value": "DEV-UNKNOWN" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\"username\": \"mhs1\", \"password\": \"Password123!\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('Status 403', () => pm.response.to.have.status(403));"] }
+            }
+          ]
+        },
+        {
+          "name": "Login password salah",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Device-ID", "value": "DEV-MHS-01" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\"username\": \"mhs1\", \"password\": \"WrongPass\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('Status 401', () => pm.response.to.have.status(401));"] }
+            }
+          ]
+        },
+        {
+          "name": "Login admin1",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Device-ID", "value": "DEV-ADMIN-01" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\"username\": \"admin1\", \"password\": \"Password123!\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var data = pm.response.json();",
+                  "pm.collectionVariables.set('admin_token', data.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login dosen1",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Device-ID", "value": "DEV-DOSEN-01" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\"username\": \"dosen1\", \"password\": \"Password123!\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var data = pm.response.json();",
+                  "pm.collectionVariables.set('dosen1_token', data.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Device-ID", "value": "{{device_id}}" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/refresh", "host": ["{{base_url}}"], "path": ["auth", "refresh"] },
+            "body": { "mode": "raw", "raw": "{\"refresh_token\": \"{{refresh_token}}\"}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var data = pm.response.json();",
+                  "  pm.collectionVariables.set('access_token', data.access_token);",
+                  "  pm.collectionVariables.set('refresh_token', data.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Device-ID", "value": "{{device_id}}" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] },
+            "body": { "mode": "raw", "raw": "{\"refresh_token\": \"{{refresh_token}}\"}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nilai",
+      "item": [
+        {
+          "name": "GET /nilai (mhs1)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "X-Device-ID", "value": "DEV-MHS-01" }
+            ],
+            "url": { "raw": "{{base_url}}/nilai", "host": ["{{base_url}}"], "path": ["nilai"] }
+          }
+        },
+        {
+          "name": "GET /nilai?kelas_id=1 (dosen1)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{dosen1_token}}" },
+              { "key": "X-Device-ID", "value": "DEV-DOSEN-01" }
+            ],
+            "url": { "raw": "{{base_url}}/nilai?kelas_id=1", "host": ["{{base_url}}"], "path": ["nilai"], "query": [{ "key": "kelas_id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "PUT /nilai/1 (dosen1 — draft)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{dosen1_token}}" },
+              { "key": "X-Device-ID", "value": "DEV-DOSEN-01" }
+            ],
+            "url": { "raw": "{{base_url}}/nilai/1", "host": ["{{base_url}}"], "path": ["nilai", "1"] },
+            "body": { "mode": "raw", "raw": "{\"nilai_angka\": 90}" }
+          }
+        },
+        {
+          "name": "GET /nilai (admin — ditolak)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "X-Device-ID", "value": "DEV-ADMIN-01" }
+            ],
+            "url": { "raw": "{{base_url}}/nilai", "host": ["{{base_url}}"], "path": ["nilai"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kelas",
+      "item": [
+        {
+          "name": "POST /kelas/1/finalisasi (dosen1)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{dosen1_token}}" },
+              { "key": "X-Device-ID", "value": "DEV-DOSEN-01" }
+            ],
+            "url": { "raw": "{{base_url}}/kelas/1/finalisasi", "host": ["{{base_url}}"], "path": ["kelas", "1", "finalisasi"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transkrip",
+      "item": [
+        {
+          "name": "GET /transkrip/2210001 (mhs1 — NIM sendiri)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "X-Device-ID", "value": "DEV-MHS-01" }
+            ],
+            "url": { "raw": "{{base_url}}/transkrip/2210001", "host": ["{{base_url}}"], "path": ["transkrip", "2210001"] }
+          }
+        },
+        {
+          "name": "GET /transkrip/2210002 (mhs1 — NIM orang lain, ditolak)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "X-Device-ID", "value": "DEV-MHS-01" }
+            ],
+            "url": { "raw": "{{base_url}}/transkrip/2210002", "host": ["{{base_url}}"], "path": ["transkrip", "2210002"] }
+          }
+        },
+        {
+          "name": "GET /transkrip/2210002 (admin — diizinkan)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "X-Device-ID", "value": "DEV-ADMIN-01" }
+            ],
+            "url": { "raw": "{{base_url}}/transkrip/2210002", "host": ["{{base_url}}"], "path": ["transkrip", "2210002"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Keamanan",
+      "item": [
+        {
+          "name": "Akses langsung ke :3001 (tanpa gateway secret)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{nilai_direct}}/nilai", "host": ["{{nilai_direct}}"], "path": ["nilai"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('Ditolak 403', () => pm.response.to.have.status(403));"] }
+            }
+          ]
+        },
+        {
+          "name": "Request tanpa token",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Device-ID", "value": "DEV-MHS-01" }],
+            "url": { "raw": "{{base_url}}/nilai", "host": ["{{base_url}}"], "path": ["nilai"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('Ditolak 401', () => pm.response.to.have.status(401));"] }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

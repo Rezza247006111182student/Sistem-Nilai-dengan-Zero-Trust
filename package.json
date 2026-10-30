@@ -1,0 +1,24 @@
+{
+  "name": "sistem-nilai-zero-trust",
+  "version": "1.0.0",
+  "description": "Sistem Nilai dengan arsitektur Zero Trust — Praktikum Keamanan Informasi",
+  "private": true,
+  "scripts": {
+    "genkeys": "node -e \"const{execFileSync}=require('child_process');const fs=require('fs');const path=require('path');if(!fs.existsSync('keys'))fs.mkdirSync('keys');const cands=['openssl',path.join(process.env.ProgramFiles||'C:/Program Files','Git/usr/bin/openssl.exe'),'C:/xampp/apache/bin/openssl.exe'];const o=cands.find(c=>{try{execFileSync(c,['version'],{stdio:'ignore'});return true}catch{return false}});if(!o){console.error('OpenSSL tidak ditemukan. Install OpenSSL atau pastikan XAMPP/Git terpasang.');process.exit(1)}execFileSync(o,['genpkey','-algorithm','RSA','-out','keys/private.pem','-pkeyopt','rsa_keygen_bits:2048'],{stdio:'inherit'});execFileSync(o,['rsa','-pubout','-in','keys/private.pem','-out','keys/public.pem'],{stdio:'inherit'});console.log('RSA key pair generated in keys/')\"",
+    "seed": "node db/seed.js",
+    "start": "concurrently -n gw,nilai,transkrip -c cyan,green,yellow \"node gateway/server.js\" \"node service-nilai/server.js\" \"node service-transkrip/server.js\"",
+    "test": "node tests/run-scenarios.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "http-proxy-middleware": "^3.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.11.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+
